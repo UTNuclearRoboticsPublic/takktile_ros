@@ -58,7 +58,7 @@ from yaml import safe_load
 # replace with 1 if the product is TakkArray
 TAKKARRAY_FLAG = 0
 # this is used for TakkArray sensor re-mapping
-TAKKARRAY_MAPPING = np.array([15, 16, 17, 18, 19, 25, 26, 27, 28, 29, 5, 6, 7, 8, 9, 30, 31, 32, 33, 34, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24, 0, 1, 2, 3, 4, 35, 36, 37, 38, 39 ])
+TAKKARRAY_MAPPING = np.array([0,1,2,3,4,5,6,7,8,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35])
 
 class TakkNode:
     def __init__(self, xyz_map, frame_id, temp_lowpass, contact_threshold):
@@ -82,11 +82,6 @@ class TakkNode:
 
 	print "Number of boards found = ", len(tks[0].UIDs)
 	print "UIDs ", tks[0].UIDs
-
-        # check if there are multiple interfaces that are connected
-	if len(tks[0].UIDs)>1:
-		for i in range(1, len(tks[0].UIDs)):
-			tks.append(TakkTile(i)) # start a new instance for each board
 
         # get static map of populated live sensors
 	self.alive=[]
@@ -142,8 +137,21 @@ class TakkNode:
 	    #	    print "type(data.values()) ->", type(data.values())
 	    #	    dataValues=data.values()
 	    #	    print "zip(*dataValues) ->", zip(*dataValues)
-
-	    [self.pressure, temp_new] = zip(*data.values())
+            [presses, temp_new] = zip(*data.values())
+	    #[self.pressure, temp_new] = zip(*data.values())
+            #print(len(presses))
+            #print(len(temp_new))
+            #print(len(self.temp))
+            #print(len(self.calibration))
+	    while (len(presses) < 12) :
+                presses = presses + (0,)
+	    while (len(temp_new) < 12) :
+                temp_new = temp_new + (0,)
+	    while (len(self.temp) < 12) :
+                self.temp = self.temp + (0,)
+	    while (len(self.calibration) < 12) :
+                self.calibration = self.calibration + (0,)
+            self.pressure = presses
 
             #print self.pressure
             # lowpass filter temperature
@@ -219,7 +227,7 @@ if __name__ == '__main__':
 	print 'contact threshold:', CONTACT_THRESHOLD
 	print 'temp lowpass:', TEMPERATURE_LOWPASS
 	
-	for i in range(40):
+	for i in range(36):
 		XYZ_MAP += [Point32(config[i][0], config[i][1], config[i][2])]
 
 	TakkNode(XYZ_MAP, FRAME_ID, TEMPERATURE_LOWPASS, CONTACT_THRESHOLD)
